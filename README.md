@@ -48,7 +48,7 @@ In order to cater this functionality, three new endpoints will be implemented on
   -	POS Endpoint
 
 ### OTP Endpoint
-The OTP Endpoint will be responsible for the handling of OTP requests from the Payer source. Upon receipt of an OTP request, the endpoint will generate the OTP and respond through the same channel.
+The OTP Endpoint will be responsible for the handling of OTP requests from the Payer source. Upon receipt of an OTP request, the endpoint will generate the OTP and respond with the OTP through to the originator.
 
 ### ATM Endpoint
 ATM Endpoint will be responsible for the handling and processing of transactions originating from ATM devices. The transactions in ISO/NDC/DDC formats will be converted to Open API and processed through the simulator.
