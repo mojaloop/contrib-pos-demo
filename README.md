@@ -42,7 +42,7 @@ The business process involves two parties, Merchant and Customer. The merchant i
   
   ## Simulator Endpoints
 As a part of the terminal integration project, we will be making use of the FSP simulator, to function as the Payer and Payee FSP as per the use cases. 
-In order to cater this functionality, three new endpoints will be implemented on the simulator as below:
+In order to cater for this functionality, three new endpoints will be implemented on the simulator as below:
   -	OTP Endpoint
   -	ATM Endpoint
   -	POS Endpoint
