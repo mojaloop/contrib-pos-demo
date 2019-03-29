@@ -1,0 +1,1 @@
+POS driver integration details
