@@ -20,6 +20,22 @@ The POS driving application has been customised to integrate with Mojaloop throu
 - Response will be sent back to POS driver through Mojaloop in OPEN API. It will be converted to ISO(POS) and will send the response to POS.
 - Notification will be sent to Payer and Payee from respective FSP’s
 
+### Prerequisite software stack
+
+- Android Studio
+- Eclipse
+- MYSQL server
+- Tomcat server
+
+## Mojaloop Integration
+
+The POS Driving solution mainly comprises of an Android Application and a Webservice. Through the POS device payer information such as mobile number or account number and amount is obtained. This information is then sent to the Webservice which processes to ISO8583 JSON message.
+In the first stage, the Application retrieves serial number of the POS and sends it to the webservice in JSON format. The webservice then checks its database to see if such a device has been registered or not. If it has a matching entry, then, it would send back related information to the Android application in JSON format. 
+The database contains entries serial number, merchant id, terminal id etc. So, when a certain device tries to access the webservice, it must go through a check to see if the device is valid or not. In case the device has already been registered, then it is permitted to access the webservice. The webservice would then respond by sending back its Merchant ID and Terminal ID to the android application. And in case the device is not registered, it will be denied the access.
+The ISO8583 message is then sent to Mojaloop. This message is mapped by POS Endpoint to Open API format. The OTP endpoint is implemented to generate random OTP. The Payer FSP will authorize the transaction with dynamic OTP (or QR Code) which is sent through the POS device, as entered by the customer. Response will be sent back to POS driver through Mojaloop in Open API and converted to ISO format at the POS Endpoint. Notification will be sent to Payer and Payee from respective FSP’s.
+
+
+
 
 
 
