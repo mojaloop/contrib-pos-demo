@@ -1,5 +1,5 @@
 # ATM Driver
-The ATM driver is an application that has been designed and developed to drive Automated Teller Machines(ATM terminals) and Bulk Note Acceptors( Cash Deposit terminals). The driver supports NDC, NDC+, APtraEdge protocols along with ISO 8583 and ISO JSON messaging formats.
+The ATM driver is an application that has been designed and developed to drive Automated Teller Machines(ATM terminals) and Bulk Note Acceptors( Cash Deposit terminals). The driver supports NDC, NDC+, AptraEdge protocols along with ISO 8583 and ISO JSON messaging formats.
 The driver has been designed to integrate with any type of payments switch for ATM driving, managing and monitoring.
 
 ## Use Case: ATM Initiated Cash Out
