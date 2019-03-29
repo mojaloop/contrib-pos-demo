@@ -1,5 +1,5 @@
 # ATM Driver
-The ATM driver is an application that has been designed and developed to drive Automated Teller Machines(ATM terminals) and Bulk Note Acceptors( Deposit). The driver supports NDC, NDC+, APtraEdge protocols along with ISO 8583 and ISO JSON messaging formats.
+The ATM driver is an application that has been designed and developed to drive Automated Teller Machines(ATM terminals) and Bulk Note Acceptors( Cash Deposit terminals). The driver supports NDC, NDC+, APtraEdge protocols along with ISO 8583 and ISO JSON messaging formats.
 The driver has been designed to integrate with any type of payments switch for ATM driving, managing and monitoring.
 
 ## Use Case: ATM Initiated Cash Out
@@ -25,3 +25,17 @@ We intend to use the FSP simulator to simulate the Payer and Payee FSP's. An end
   - Payer FSP will send response back to Mojaloop.
   - Response will be received by ATM Driver in OPEN API. This will be converted to ISO and is sent to ATM.
   - ATM will perform the actions as mentioned by the message. (Dispense and Print etc.)
+  
+  ## Pre-requisite Software stack
+  
+  The following platforms are supported by ATM Driver. 
+  
+ - Operating System [Windows (any edition), Linux, and iOS].
+ - Database (MSSQL Server, Postgresql, MySQL, SQLite etc.). 
+
+The following software should be installed on the system.
+
+- Java version 8 should be installed on the server.
+- Apache Tomcat version 8.5 should be installed (For UI deployment)
+- Google Chrome for configuration UI 
+
