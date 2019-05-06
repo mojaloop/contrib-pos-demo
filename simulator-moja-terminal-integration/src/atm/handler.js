@@ -23,7 +23,7 @@
 'use strict'
 const iso8583 = require('iso_8583');
 const util = require('../utils/util');
-
+const Const = require('../utils/constant');
 const NodeCache = require('node-cache')
 const myCache = new NodeCache()
 const fetch = require('node-fetch')
@@ -39,7 +39,7 @@ const transfersFulfilment = process.env.TRANSFERS_FULFILMENT || 'XoSz1cL0tljJSCp
 const transfersCondition = process.env.TRANSFERS_CONDITION || 'HOr22-H3AfTDHrSkPjJtVPRdKouuMkDXTR4ejlQa8Ks'
 const transfersIlpPacket = process.env.TRANSFERS_ILPPACKET || 'AQAAAAAAAADIEHByaXZhdGUucGF5ZWVmc3CCAiB7InRyYW5zYWN0aW9uSWQiOiIyZGY3NzRlMi1mMWRiLTRmZjctYTQ5NS0yZGRkMzdhZjdjMmMiLCJxdW90ZUlkIjoiMDNhNjA1NTAtNmYyZi00NTU2LThlMDQtMDcwM2UzOWI4N2ZmIiwicGF5ZWUiOnsicGFydHlJZEluZm8iOnsicGFydHlJZFR5cGUiOiJNU0lTRE4iLCJwYXJ0eUlkZW50aWZpZXIiOiIyNzcxMzgwMzkxMyIsImZzcElkIjoicGF5ZWVmc3AifSwicGVyc29uYWxJbmZvIjp7ImNvbXBsZXhOYW1lIjp7fX19LCJwYXllciI6eyJwYXJ0eUlkSW5mbyI6eyJwYXJ0eUlkVHlwZSI6Ik1TSVNETiIsInBhcnR5SWRlbnRpZmllciI6IjI3NzEzODAzOTExIiwiZnNwSWQiOiJwYXllcmZzcCJ9LCJwZXJzb25hbEluZm8iOnsiY29tcGxleE5hbWUiOnt9fX0sImFtb3VudCI6eyJjdXJyZW5jeSI6IlVTRCIsImFtb3VudCI6IjIwMCJ9LCJ0cmFuc2FjdGlvblR5cGUiOnsic2NlbmFyaW8iOiJERVBPU0lUIiwic3ViU2NlbmFyaW8iOiJERVBPU0lUIiwiaW5pdGlhdG9yIjoiUEFZRVIiLCJpbml0aWF0b3JUeXBlIjoiQ09OU1VNRVIiLCJyZWZ1bmRJbmZvIjp7fX19'
 
-exports.postInfo = async function(req, h) {
+exports.postInfo = async function (req, h) {
 
     console.log('Received Request From ATM : ')
     console.log(req.payload)
@@ -85,6 +85,7 @@ exports.postInfo = async function(req, h) {
                 "partyIdType": "MSISDN",
                 "partyIdentifier": F041
             },
+
         },
         "payer": {
             "partyIdType": "MSISDN",
@@ -101,6 +102,7 @@ exports.postInfo = async function(req, h) {
         },
         "authenticationType": {
             "Authentication": "OTP"
+
         },
         "expiration": new Date(new Date().getTime() + 10000)
     }
@@ -152,97 +154,104 @@ exports.postInfo = async function(req, h) {
     const otp_url = atmEndpoint + '/validateOtp';
     const payee_transfers_url = atmEndpoint + '/payeefsp/transfers'
 
+
     return fetch(quote_url, {
-            headers: {
-                'Accept': 'application/vnd.interoperability.quotes+json;version=1',
-                'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
-                'FSPIOP-Source': 'atm',
-                'FSPIOP-Destination': 'payeefsp',
-                'Date': new Date().toISOString()
-            },
-            method: "POST",
-            body: JSON.stringify(quote_request)
-        })
-        .then(function(res) {
-            console.log('Qoute Response at ATM handler:')
-            console.log(res)
-            console.log(' ****** ');
+        headers: {
+            'Accept': 'application/vnd.interoperability.quotes+json;version=1',
+            'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
+            'FSPIOP-Source': 'atm',
+            'FSPIOP-Destination': 'payeefsp',
+            'Date': new Date().toISOString()
+        },
+        method: "POST",
+        body: JSON.stringify(quote_request)
+    })
+        .then(function (res) {
+            console.log('Received Quotes response ATM handler')
+            //console.log(res)
             return res.json();
         })
-        .then(function(res) {
-            //console.log('fetch res 2 quote ATM handler')
-            //console.log(`JIJIJIJIJI+${res}JIJIJIJI`)
+        .then(function (res) {
+            console.log('Quotes response ATM handler')
             quoteAmount = res.quoteAmount.amount;
-            console.log(' ****** ');
-            console.log(`QuoteAmount:  ${quoteAmount}`)
-            console.log(' ****** ');
+            console.log(res.quoteAmount)
+  
             return fetch(otp_url, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    method: "POST",
-                    body: JSON.stringify(otp_request)
-                })
-                .then(function(res) {
-                    console.log('Response (json) from OTP handler')
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: "POST",
+                body: JSON.stringify(otp_request)
+            })
+                .then(function (res) {
+                    console.log('Received OTP response in ATM handler')
                     console.log(res)
                     return res.json();
+
+
                 })
-                .then(function(res) {
-                    console.log('Response from OTP handler')
+                .then(function (res) {
+                    console.log('OTP response in ATM handler')
                     console.log(res)
                     var res1;
-                    if (res.response == 'OTP invalid') {
-
-                        F103 = '01';
-                        request.messageType = "0110";
-                        request.authenticationType.Authentication = F103;
-
-                        request.expiration = new Date(new Date().getTime() + 20000)
-                        return request;
-
-                        res1 = res.response;
-                        return res.response;
-
-                    } else {
+                    if (res.status == Const.OTP_VERIFIED) {
                         //perform transaction to payeefsp/transfers
                         F103 = '00';
                         F004 = quoteAmount;
-                        console.log(`Quote Amt: ${quoteAmount}`)
                         return fetch(payee_transfers_url, {
-                                headers: {
-                                    'Accept': 'application/json',
-                                    'Content-Type': 'application/json'
-                                },
-                                method: "POST",
-                                body: JSON.stringify(request)
-                            })
-                            .then(function(res) {
-                                console.log('Response from payee_transfers to ATM handler')
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            method: "POST",
+                            body: JSON.stringify(request)
+                        })
+                            .then(function (res) {
+                                console.log('Received response from  PayeeFSP in ATM handler')
                                 console.log(res)
                                 request.messageType = "0110";
                                 request.authenticationType.Authentication = F103;
                                 request.amount.amount = quoteAmount
 
+
                                 request.expiration = new Date(new Date().getTime() + 20000)
                                 return request
+
+
                             })
-                            .catch(function(err) {
+                            .catch(function (err) {
                                 console.log(`fetch err payee_transfers ATM handler ${err}`)
                             })
+
+
+                    }
+                    else {
+                        console.log(res.response);
+                        F103 = '01';
+                        request.messageType = "0110";
+                        request.authenticationType.Authentication = F103;
+
+                        //request.expiration = new Date(new Date().getTime() + 20000)
+                        return request;
+
+                        res1 = res.response;
+
+                        return res.response;
+
                     }
                     return res1;
+
+
                 })
-                .catch(function(err) {
+                .catch(function (err) {
                     console.log(`OTP ATM handler error ${err}`)
                 });
-            //}
-            //return h.response().code(202)
+           
         });
 }
 
-exports.getQuote = async function(req, h) {
+exports.getQuote = async function (req, h) {
     console.log('Received Request From ATM : ')
     console.log(req.payload)
     const quote_url = quotesEndpoint + '/payeefsp/quotes'
@@ -269,6 +278,7 @@ exports.getQuote = async function(req, h) {
     let F018 = req.payload.F018
     let F102 = req.payload.F102
     let F103 = req.payload.F103
+
 
     if (F049 == 356) {
         F049 = 'INR'
@@ -304,39 +314,38 @@ exports.getQuote = async function(req, h) {
         },
         "authenticationType": {
             "Authentication": F103
+
         },
         "expiration": "2016-05-24T08:38:08.699-04:00"
     }
 
     return await fetch(quote_url, {
-            headers: {
-                'Accept': 'application/vnd.interoperability.quotes+json;version=1',
-                'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
-                'FSPIOP-Source': 'atm',
-                'FSPIOP-Destination': 'payeefsp',
-                'Date': new Date().toISOString()
-            },
-            method: "POST",
-            body: JSON.stringify(quote_request)
-        })
-        .then(function(res) {
-            console.log('fetch res msgtyoe0100')
-            console.log(res)
-                //return res;
+        headers: {
+            'Accept': 'application/vnd.interoperability.quotes+json;version=1',
+            'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
+            'FSPIOP-Source': 'atm',
+            'FSPIOP-Destination': 'payeefsp',
+            'Date': new Date().toISOString()
+        },
+        method: "POST",
+        body: JSON.stringify(quote_request)
+    })
+        .then(function (res) {
             return res.json();
         })
-        .then(function(res) {
-            console.log('fetch res msgtyoe0100')
+        .then(function (res) {
             console.log(res)
-                //return res.json();
+            //return res.json();
             return res;
         })
-        .catch(function(res) {
+        .catch(function (res) {
             console.log(`in ATM fetch error ${err}`)
         });
+
 }
 
-exports.posToILP = async function(req, h) {
+
+exports.posToILP = async function (req, h) {
     console.log('Received Request From ATM : ')
     console.log(req.payload)
 
@@ -364,6 +373,7 @@ exports.posToILP = async function(req, h) {
     let F102 = req.payload.F102
     let F103 = req.payload.F103
 
+
     if (F049 == 356) {
         F049 = 'INR'
     } else if (F049 == 840) {
@@ -373,6 +383,7 @@ exports.posToILP = async function(req, h) {
     }
 
     let uuid = util.guid(F011);
+
 
     let request = {
         "transferId": uuid,
@@ -403,59 +414,67 @@ exports.posToILP = async function(req, h) {
         "expiration": "2016-05-24T08:38:08.699-04:00"
     }
 
+
     const otp_url = host + '/validateOtp';
     const otp_request = {
-            "phoneNo": F102,
-            "inputOtp": F103
-        }
-        //goes to otp for validation
- 
+        "phoneNo": F102,
+        "inputOtp": F103
+
+    }
+    //goes to otp for validation
+    
     return await fetch(otp_url, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: JSON.stringify(otp_request)
-        })
-        .then(function(res) {
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(otp_request)
+    })
+        .then(function (res) {
             console.log('fetch res1')
             console.log(res)
             return res.json();
+
+
         })
-        .then(function(res) {
+        .then(function (res) {
             console.log('fetch res2')
             console.log(res)
             var res1;
             if (res.response == 'OTP invalid') {
                 res1 = res.response;
                 //return res.response;
+                //console.log('verified aaa')
             } else {
                 const payee_url = host + '/payeefsp/transfers';
                 res1 = fetch(payee_url, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        method: "POST",
-                        body: JSON.stringify(otp_request)
-                    })
-                    .then(function(res) {
-                        console.log('fetch res1 payeefsp')
-                        console.log(res)
-                            //return res.json();
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    method: "POST",
+                    body: JSON.stringify(otp_request)
+                })
+                    .then(function (res) {
+                        console.log('Received response from PayeeFSP')
+                        //console.log(res)
+                       
                         return 'Approved';
+
+
                     })
-            }
+                }
             return res1;
         })
 
-    .catch(function(res) {
-        console.log(res)
-        return res;
-    });
 
-    console.log(hi)
+
+        .catch(function (res) {
+            console.log(res)
+            return res;
+
+        });
 
     return h.response().code(202)
 }

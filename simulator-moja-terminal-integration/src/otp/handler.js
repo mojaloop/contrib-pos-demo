@@ -19,129 +19,265 @@
  - Renjith Palamattom  <renjith@coil.com>
  --------------
  ******/
-
 'use strict'
 const Util = require('../utils/util')
 const SMS = require('./sms');
 const db = require('./db/db');
+const Const = require('../utils/constant');
+
 const Logger = require('@mojaloop/central-services-shared').Logger
 const collection = "otp";
 
-exports.generateOTP = function(request, h) {
-    const input = request.payload;
-    //console.log(input);
-    const phoneNo = input.phoneNo.toString();
-    console.log('Input Phone Number is : ' + phoneNo);
-    const otp = Util.generateOTP(phoneNo).toString();
+function User(createdAt, expiresAt, phoneNo, otp) {
+    this.createdAt = createdAt;
+    this.expiresAt = expiresAt;
+    this.phoneNo = phoneNo;
+    this.otp = otp;
 
-    Logger.info('Sendotp Connected to db ' + db.dbname);
-    db.getDB().collection(collection).insertOne({
-        "createdAt": new Date(),
-        "phoneNo": +phoneNo,
-        "otp": +otp
-    });
-    console.log("Generated OTP for phone number: " + phoneNo + " is : " + otp);
-
-    return h.response(otp).code(200);
 }
 
-var response1 = 'null';
-exports.validateOtp = function(request, h) {
+function findUserQuery(phoneNo) {
+    return new Promise((resolve, reject) => {
+
+        return db.getDB().collection(collection).find({ "phoneNo": phoneNo }).sort({ $natural: -1 }).limit(1)
+            .toArray(function (err, doc) {
+                if (err) {                // handle error
+                    console.log(err);
+                    console.log('error from db query')
+                    return reject(err);
+
+                }
+                if (doc != null) {
+                    var result = doc[0] || ('no user')
+                    return resolve(result);
+                    
+                    
+
+                }
+                else {
+                    //console.log('Phone number does not exist in db')
+                    return resolve('no user');
+
+                    //return generateOTPa(phoneNo);
+                    var otp = generateOTPa(phoneNo, null);
+                    return resolve(otp);
+                    return resolve('doc null');
+                    // throw new Error('doc null')
+                    // reject(function (){throw new Error('doc null')});
+                }
+
+            })
+
+
+
+        //});
+    });
+
+}
+
+exports.sendOtp2 = async function (request, h) {
     const input = request.payload;
-    console.log('Input Values')
-    //console.log(input)
+    console.log(input);
+    //const phoneNo = input.phoneNo.toString();
     const phoneNo = input.phoneNo;
-    console.log('phoneNo: '+ phoneNo)
-    const inputOtp = input.inputOtp;
-    console.log('inputOtp: ' + inputOtp)
+    console.log(phoneNo);
+    return new Promise((resolve, reject) => {
+        var userPromise = findUserQuery(phoneNo);
+        userPromise.then(
+            function (result) {
+                console.log(`result: ${result}`)
+      
+                if (result != 'no user') {
+                    console.log('Phone number exists in db');
+                    console.log(result);
+                    var currentTime = new Date();
+                    console.log(`currentTime: ${currentTime.toISOString()}`)
 
-    Logger.info(' in validate OTP, Connected to db ' + db.dbname);
+                    var otpToSend;
+                    //const isOtpvalid = isOTPValid(currentTime, doc[0].expiresAt);
+                    switch (isOTPValid(currentTime, result.expiresAt)) {
+                        case (Const.OTP_VALID):
+                            console.log('withinTimeLimit; OTP valid')
+                            otpToSend = result.otp;
+                            break;
+                        case (Const.OTP_EXPIRED):
+                            console.log('outside time limit; OTP expired');
+                            var user_id = result._id;
+                            console.log(`user_id: ${user_id}`);
+                            //update otp for this phoneNo
+                            otpToSend = generateOTPa(phoneNo, user_id);
+                            break;
 
-    //----------------------
-    let res = db.getDB().collection(collection).findOne({ "phoneNo": +phoneNo }, function(err, doc) {
-            if (err) {
-                // handle error
-                console.log('error from db query')
-            }
-            if (doc != null) {
-                if (!doc.phoneNo) {
-                    //handle case
-                    console.log('!doc.phoneNo')
-                } else {
-                    //handle case
-                    console.log(`valid.phoneNo: ${doc.phoneNo}`);
-                    console.log(`valid.otp: ${doc.otp}`);
-                    //console.log(`inputOtp: ${inputOtp}`);
-                    if (doc.otp == inputOtp) {
-                        global.response1 = 'OTP Verified';
-                        console.log(global.response1);
-                        console.log(`User ${phoneNo} is verified`);
-                    } else {
-                        console.log(`User ${phoneNo} is unverified`);
-                        global.response1 = 'OTP Unverified';
-                        console.log(global.response1);
                     }
+                    return resolve(otpToSend);
+                }
+                //console.log('no user detected');
+                var otp = generateOTPa(phoneNo, null);
+                return resolve(otp);
+
+            },
+            function (error) {
+                return reject(error);
+
+            }
+        );
+    });
+
+   
+}
+
+function updateOtpQuery(_id, user) {
+    return new Promise((resolve, reject) => {
+        return db.getDB().collection(collection).findOneAndUpdate(
+            { "_id": db.getPrimaryKey(_id) },
+            {
+                $set:
+                {
+                    "createdAt": user.createdAt,
+                    "expiresAt": user.expiresAt,
+                    "phoneNo": user.phoneNo,
+                    "otp": user.otp
+                }
+            }, function (err, result) {
+                if (err) {
+                    console.log(`error updating otp for phoneNo: ${user.phoneNo}`);
+                    return reject(err);
+                }
+                else {
+                    console.log(`successfully updated otp for phoneNo: ${user.phoneNo}`)
+                    console.log(`new otp: ${user.otp}`)
+                    //console.log(result.lastErrorObject);
+                    return resolve(user.otp);
                 }
             }
-        }
-    );
+        );
+    });
 
-    // response = 'verified';
-    console.log(`User1 ${global.response1} `);
-    return h.response(global.response1).code(200);
 }
 
-exports.validateOtpreto = function(request, h) {
+function insertOtpQuery(user) {
+    return new Promise((resolve, reject) => {
+        return db.getDB().collection(collection).insertOne({
+            //"createdAt": new Date(),
+            "createdAt": user.createdAt,
+            "expiresAt": user.expiresAt,
+            "phoneNo": user.phoneNo,
+            "otp": user.otp
+            //both numbers before
+        }, function (err, res) {
+            if (err) {
+                console.log('error inserting OTP data')
+                return reject(err);
+            }
+            else {
+                console.log('successfully inserted OTP data');
+                console.log(res.ops[0]);
+                return resolve(user.otp);
+                //return otp;
+
+            }
+        });
+    });
+
+
+}
+
+function validateOtpQuery(phoneNo, inputOtp) {
+    return new Promise((resolve, reject) => {
+        //----------------------
+        //db.getDB().collection(collection).findOne({ "phoneNo": phoneNo }, function (err, doc) {
+        db.getDB().collection(collection).find({ "phoneNo": phoneNo }).sort({ $natural: -1 }).limit(1)
+            .toArray(function (err, doc) {
+                if (err) {
+                    // handle error
+                    console.log(err);
+                    console.log('error from db query')
+                    return reject(err);
+                    //h.response('Database error').code(500);
+                }
+                if (doc != null) {
+                    if (!doc[0]) {
+                        //handle case
+                        console.log('!doc[0]')
+                        console.log('------')
+                        return reject('no phno');
+                    } else {
+                        //handle case
+                        console.log('Phone no exists');
+                        console.log(doc[0]);
+                        console.log(`inputOtp: ${inputOtp}`);
+                        if (doc[0].otp == inputOtp) {
+                            var currentTime = new Date();
+                            var body;
+                            console.log(`currentTime: ${currentTime.toISOString()}`)
+                            switch (isOTPValid(currentTime, doc[0].expiresAt)) {
+                                case Const.OTP_VALID:
+                                    console.log('OTP verified')
+                                    body = JSON.stringify({ status: Const.OTP_VERIFIED, response: "OTP verified" });
+                                    console.log('------')
+                                    break;
+                                case Const.OTP_EXPIRED:
+                                    console.log('OTP expired');
+                                    console.log('------')
+                                    //body = JSON.stringify({ response: Const.OTP_EXPIRED });
+                                    body = JSON.stringify({ status: Const.OTP_EXPIRED, response: "OTP expired!!" });
+                            }
+                         
+                        }
+                        else {
+                            console.log('OTP invalid!!')
+                            console.log('------')
+                            body = JSON.stringify({ status : Const.OTP_INVALID, response: "OTP invalid" });
+                            //return resolve('OTP invalid')
+
+                        }
+                        return resolve(body);
+
+                    }
+                }
+                else {
+                    console.log('array null')
+                    console.log('------')
+                }
+            });
+    });
+}
+
+function generateOTPa(phoneNoa, _id) {
+    const phoneNo = phoneNoa.toString();
+    console.log(`Generating OTP for ${phoneNo}`);
+    const otp = Util.generateOTP(phoneNo).toString();
+    var createdAt = new Date();
+    var expiresAt = Util.addMinutes(createdAt, 1);
+    var user = new User(createdAt, expiresAt, phoneNo, otp);
+
+    if (_id != null) {
+        return updateOtpQuery(_id, user);
+
+    }
+    else {
+        return insertOtpQuery(user);
+    }
+
+
+}
+
+function isOTPValid(currentTime, expiresAtTime) {
+    if (currentTime < expiresAtTime)
+        return Const.OTP_VALID;
+    else return Const.OTP_EXPIRED;
+}
+
+exports.validateOtp = function (request, h) {
     const input = request.payload;
     const phoneNo = input.phoneNo;
     const inputOtp = input.inputOtp;
 
     var response;
 
-    Logger.info(' in validate OTP atm & pos, Connected to db ' + db.dbname);
-    //console.log(`input ${input}`)
-    console.log(`phoneNo ${phoneNo}`)
+    Logger.info('In validateotp(). Connected to db ' + db.dbname);
+    console.log(`input phoneNo ${phoneNo}`)
     console.log(`inputOtp ${inputOtp}`)
+    return validateOtpQuery(phoneNo, inputOtp);
 
-    return new Promise((resolve, reject) => {
-        //----------------------
-        db.getDB().collection(collection).findOne({ "phoneNo": +phoneNo }, function(err, doc) {
-            if (err) {
-                // handle error
-                console.log(err);
-                console.log('error from db query')
-                return reject(err);
-                //h.response('Database error').code(500);
-            }
-            if (doc != null) {
-                if (!doc.phoneNo) {
-                    //handle case
-                    console.log('!doc.phoneNo')
-                    return reject('no phno');
-                } else {
-                    //handle case
-                    console.log(`valid.phoneNo: ${doc.phoneNo}`);
-                    console.log(`valid.otp: ${doc.otp}`);
-                    console.log(`inputOtp: ${inputOtp}`);
-                    if (doc.otp == inputOtp) {
-                        console.log(`User ${phoneNo} is verified`);
-                        response = 'Approved!!'
-
-                        // return resolve(response);
-
-                        var body = JSON.stringify({ response: "Verified" })
-                        return resolve(body);
-                        //return h.response('verified').code(200);
-                    } else {
-                        console.log(`User ${phoneNo} is unverified`);
-                        response = 'Rejected!!';
-
-                        var body = JSON.stringify({ response: "OTP invalid" })
-                        return resolve(body);
-                        //return h.response('unverified').code(200);
-                    }
-                }
-            }
-        });
-    });
 }

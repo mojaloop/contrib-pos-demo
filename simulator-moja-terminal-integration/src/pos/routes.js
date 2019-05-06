@@ -23,7 +23,6 @@
 'use strict'
 
 const Handler = require('./handler')
-    //const Handler = require('../atm_endpoint_test/test')
 const tags = ['api', 'metadata']
 
 module.exports = [
@@ -36,17 +35,7 @@ module.exports = [
             description: 'json from pos to openapi'
         }
     },
-    /*
-    {
-        method: 'POST',
-        path: '/quote',
-        handler: Handler.quote,
-        options: {
-            tags: tags,
-            description: 'json from pos to openapi'
-        }
-    },
-    */
+    
     {
         method: 'POST',
         path: '/pos/getQuote',

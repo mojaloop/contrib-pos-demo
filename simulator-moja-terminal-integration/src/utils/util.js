@@ -19,8 +19,7 @@
  - Renjith Palamattom  <renjith@coil.com>
  --------------
  ******/
-
- const guid = () => {
+const guid = () => {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -32,8 +31,11 @@
 
 //console.log(guid());
 
+
+
+
 function guid1(stan) {
-    //console.log(`stan: ${stan}`)
+    console.log(`stan: ${stan}`)
 
     function _p8(s) {
         var p = (stan.toString(16) + "000000000").substr(2, 8);
@@ -43,7 +45,9 @@ function guid1(stan) {
 }
 
 //console.log(guid1(121212));
-
+function addMinutes(date, minutes){
+    return new Date(date.getTime() + minutes*60000);
+}
 function generateOTP() {
 
     // Declare a digits variable
@@ -53,15 +57,23 @@ function generateOTP() {
     for (let i = 0; i < 4; i++) {
         OTP += digits[Math.floor(Math.random() * 10)];
     }
-    if (OTP.length != 4) {
-        generateOTP();
+    if (OTP.length == 4) {
+        //console.log(`in utils otp: ${OTP}`)
+       return OTP;
     }
-    return +OTP;
+    else{
+        //console.log(`in utils generating new otp`)
+        generateOTP();
+    }s
+    //return +OTP;
+    //return {}
 }
 
 module.exports = {
     guid: guid1,
     guidRandom: guid,
-    generateOTP
+    generateOTP,
+    addMinutes, 
+    
 
 };

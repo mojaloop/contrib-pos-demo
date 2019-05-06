@@ -26,22 +26,26 @@ const Handler = require('./handler')
 const tags = ['api', 'metadata']
 
 module.exports = [
+
     {
         method: 'POST',
         path: '/sendOtp',
-        handler: Handler.generateOTP,
+        handler: Handler.sendOtp2, //generateOTP
         options: {
             tags: tags,
             description: 'To generate OTP'
         }
     },
+
     {
         method: 'POST',
         path: '/validateOtp',
-        handler: Handler.validateOtpreto,
+        handler: Handler.validateOtp,
         options: {
             tags: tags,
             description: 'To validte OTP'
         }
-    }
+    },
+
+
 ]

@@ -23,7 +23,7 @@
 'use strict'
 const iso8583 = require('iso_8583');
 const Utils = require('../utils/util');
-
+const Const = require('../utils/constant');
 const NodeCache = require('node-cache')
 const myCache = new NodeCache()
 const fetch = require('node-fetch')
@@ -40,30 +40,33 @@ const transfersFulfilment = process.env.TRANSFERS_FULFILMENT || 'XoSz1cL0tljJSCp
 const transfersCondition = process.env.TRANSFERS_CONDITION || 'HOr22-H3AfTDHrSkPjJtVPRdKouuMkDXTR4ejlQa8Ks'
 const transfersIlpPacket = process.env.TRANSFERS_ILPPACKET || 'AQAAAAAAAADIEHByaXZhdGUucGF5ZWVmc3CCAiB7InRyYW5zYWN0aW9uSWQiOiIyZGY3NzRlMi1mMWRiLTRmZjctYTQ5NS0yZGRkMzdhZjdjMmMiLCJxdW90ZUlkIjoiMDNhNjA1NTAtNmYyZi00NTU2LThlMDQtMDcwM2UzOWI4N2ZmIiwicGF5ZWUiOnsicGFydHlJZEluZm8iOnsicGFydHlJZFR5cGUiOiJNU0lTRE4iLCJwYXJ0eUlkZW50aWZpZXIiOiIyNzcxMzgwMzkxMyIsImZzcElkIjoicGF5ZWVmc3AifSwicGVyc29uYWxJbmZvIjp7ImNvbXBsZXhOYW1lIjp7fX19LCJwYXllciI6eyJwYXJ0eUlkSW5mbyI6eyJwYXJ0eUlkVHlwZSI6Ik1TSVNETiIsInBhcnR5SWRlbnRpZmllciI6IjI3NzEzODAzOTExIiwiZnNwSWQiOiJwYXllcmZzcCJ9LCJwZXJzb25hbEluZm8iOnsiY29tcGxleE5hbWUiOnt9fX0sImFtb3VudCI6eyJjdXJyZW5jeSI6IlVTRCIsImFtb3VudCI6IjIwMCJ9LCJ0cmFuc2FjdGlvblR5cGUiOnsic2NlbmFyaW8iOiJERVBPU0lUIiwic3ViU2NlbmFyaW8iOiJERVBPU0lUIiwiaW5pdGlhdG9yIjoiUEFZRVIiLCJpbml0aWF0b3JUeXBlIjoiQ09OU1VNRVIiLCJyZWZ1bmRJbmZvIjp7fX19'
 
-exports.posToILP = async function(req, h) {
+exports.posToILP = async function (req, h) {
     let phoneNo = req.payload.phoneNo;
     let amount = req.payload.amount;
     let geoCode = req.payload.geocode;
     let quote = req.payload.quote;
     let inputOtp = req.payload.inputOtp;
-    // let quote = req.payload.quote;
-    console.log(" ****** ")
-    console.log(`phoneNo:  ${phoneNo}`)
-    console.log(`amount requested: ${amount}`)
-    //console.log(`geoCode ${geoCode}`)
-    //console.log(`quote ${quote}`)
-    console.log(`inputOtp: ${inputOtp}`)
-    console.log(" ****** ")
+
+
+    console.log('********')
+    console.log(`phoneNo ${phoneNo}`)
+    console.log(`amount ${amount}`)
+    console.log(`geoCode ${geoCode}`)
+    console.log(`quote ${quote}`)
+    console.log(`inputOtp ${inputOtp}`)
+    console.log('********')
 
     let uuid = Utils.guidRandom();
-    //"transactionRequestId"
+
     let payee_request = {
         "transferId": uuid,
+
         "payee": {
             "partyIdInfo": {
                 "partyIdType": "MSISDN",
                 "partyIdentifier": "kkkk"
             },
+
         },
         "payer": {
             "partyIdType": "MSISDN",
@@ -81,6 +84,7 @@ exports.posToILP = async function(req, h) {
         "geoCode": geoCode,
         "authenticationType": {
             "Authentication": "OTP"
+
         },
         "expiration": "2016-05-24T08:38:08.699-04:00"
     }
@@ -88,68 +92,69 @@ exports.posToILP = async function(req, h) {
 
     const otp_url = host + '/validateOtp';
     const otp_request = {
-            "phoneNo": phoneNo,
-            "inputOtp": inputOtp
-        }
-        //goes to otp for validation
+        "phoneNo": phoneNo,
+        "inputOtp": inputOtp
 
+    }
+    //goes to otp for validation
     return await fetch(otp_url, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: "POST",
-            body: JSON.stringify(otp_request)
-        })
-        .then(function(res) {
-            console.log('Response from OTPValidate 1')
-            console.log(res)
-            console.log(" ****** ")
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify(otp_request)
+    })
+        .then(function (res) {
+            console.log('Received OTP response POS handler')
+            //console.log(res)
             return res.json();
+
+
         })
-        .then(function(res) {
-            console.log('Response from OTPValidate 2')
+        .then(function (res) {
+            console.log('OTP response POS handler')
 
             var res1;
-            if (res.response == 'OTP invalid') {
-                res1 = res.response;
-
-            } else {
+            console.log(res.response);
+            //if (res.response == 'OTP verified') {
+            if (res.status == Const.OTP_VERIFIED) {
                 const payee_url = host + '/payeefsp/transfers';
                 res1 = fetch(payee_url, {
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        method: "POST",
-                        body: JSON.stringify(payee_request)
-                    })
-                    .then(function(res) {
-                        console.log('Response from Payeefsp for POS Txn...')
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    method: "POST",
+                    body: JSON.stringify(payee_request)
+                })
+                    .then(function (res) {
+                        console.log('Received response for POS transaction')
                         console.log(res);
-                        console.log(" ****** ")
+
                         return 'Approved';
+
+
                     })
             }
+            else {
+                res1 = res.response;
+            }
             return res1;
-            console.log(res1)
-            console.log(" ****** ")
         })
-        
-    .catch(function(res) {
-        return res;
-    });
+        .catch(function (res) {
+            return res;
+        });
 
-    console.log(hi)
-    return h.response().code(202)
+   
 }
 
-exports.getQuote = async function(req, h) {
+exports.getQuote = async function (req, h) {
     const phoneNo = req.payload.phoneNo;
     const amount = req.payload.amount;
     const sl_no = req.payload.sl_no;
     let uuid = Utils.guidRandom();
-
+    //let currency =
     let test_req = {
         "quoteId": "7c23e80c-d078-4077-8263-2c047876fcf6",
         "transactionId": uuid,
@@ -190,38 +195,40 @@ exports.getQuote = async function(req, h) {
     const quote_url = quotesEndpoint + '/payeefsp/quotes'
 
     return fetch(quote_url, {
-            headers: {
-                'Accept': 'application/vnd.interoperability.quotes+json;version=1',
-                'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
-                'FSPIOP-Source': 'pos',
-                'FSPIOP-Destination': 'payeefsp',
-                'Date': new Date().toISOString()
-            },
-            method: "POST",
-            body: JSON.stringify(test_req)
-        })
-        .then(function(res) {
-            console.log(" ****** ")
-            console.log('Response from PAYEEFSP on POS getQuote 1')
-            console.log(res)
-            console.log(" ****** ")
+        headers: {
+            'Accept': 'application/vnd.interoperability.quotes+json;version=1',
+            'Content-Type': 'application/vnd.interoperability.quotes+json;version=1.0',
+            'FSPIOP-Source': 'pos',
+            'FSPIOP-Destination': 'payeefsp',
+            'Date': new Date().toISOString()
+        },
+        method: "POST",
+        body: JSON.stringify(test_req)
+    })
+        // .then(function (res) {
+        //     console.log('fetch res msgtyoe0100aa')
+        //     console.log(res)
+        //     return res.json();
+        // })
+        .then(function (res) {
+            console.log('Received response from PayeeFSP on POS getQuote')
+            //console.log(res)
             return res.json();
         })
-        .then(function(res) {
-            console.log('Response from PAYEEFSP on POS getQuote 2')
+        .then(function (res) {
+            console.log('Response from PayeeFSP on POS getQuote 2')
             console.log(res)
-            console.log(" ****** ")
-                //return res.QuoteAmount;
-            //return res;
+            //return res.QuoteAmount;
             return res.quoteAmount.amount;
         })
-        .catch(function(err) {
+        .catch(function (err) {
             console.log(`POS getQuote handler error ${err}`)
         });
+
 }
 
-/*
-exports.quote = async function(req, h) {
+
+exports.quote = async function (req, h) {
     let mobileNo = req.payload.phoneNo;
     let amount = req.payload.amount;
 
@@ -232,4 +239,3 @@ exports.quote = async function(req, h) {
 
     return h.response('545.00').code(202)
 }
-*/
