@@ -5,7 +5,7 @@
 [![Docker pulls](https://img.shields.io/docker/pulls/mojaloop/simulator.svg?style=flat)](https://hub.docker.com/r/mojaloop/simulator)
 [![CircleCI](https://circleci.com/gh/mojaloop/simulator.svg?style=svg)](https://circleci.com/gh/mojaloop/simulator)
 
-Simulators that act as mock payer fsp and payee fsp which interact with the Switch.
+Simulators that act as mock payer fsp and payee fsp which interact with the Switch. The OTP end point is implemented in the Payer FSP. OTP generation and validation is done by OTP endpoint which is implemented inside Payer FSP.
 
 ## Environmental Vars for FSP Simulator configuration
 
