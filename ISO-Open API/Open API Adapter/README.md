@@ -2,7 +2,7 @@
 
 The	Open API Adapter is started with a TCP Server connection. The data received through the socket is passed to ‘handleISO’ function where the adapter handles the 0100 and 0200 messages.
 
-The received ISO message is unpacked using the iso_8583 package. The unpacked fields are mapped to an Open API request. (ie, if it is 0100 message will mapped to OpenAPI Quote request). 
+The received ISO message is unpacked using the iso_8583 package. The unpacked fields are mapped to an Open API request. (ie, if it is 0100 message, it will be mapped to OpenAPI Quote request). 
 
 ## Mapping Function
 
