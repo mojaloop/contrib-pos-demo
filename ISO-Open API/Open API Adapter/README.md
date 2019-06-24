@@ -6,8 +6,8 @@ The received ISO message is unpacked using the iso_8583 package. The unpacked fi
 
 ## Mapping Function
 
-- The PhoneNo is extracted from the field 2 in 0100 message.
-- Surcharge is extracted from field 28(1 percentage of the amount).
+- The PhoneNo is extracted from the Field 02 in 0100 message.
+- Surcharge is extracted from Field 28 (1% of the amount).
 - Then the OpenAPI quote request is  forwarded to Payer FSP using the URL : http://localhost:8444/payerfsp/correlationid/9895876405 (This will  check whether the participant is existing or not in  Payer FSP)
 - If the response is a valid Json then the response will be forwarded to the URL : http://localhost:8444/payeefsp/quotes
 - Payee FSP will add Payee FSP fees and forward to Payer FSP to calculate quote amount and return an OpenAPI message containing quote amount.
