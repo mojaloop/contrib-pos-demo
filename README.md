@@ -21,7 +21,7 @@ We intend to use the FSP simulator to simulate the Payer and Payee FSP's. An end
   - Payer FSP will send response back to Mojaloop.
   - Response will be received by ATM Driver in OPEN API. This will be converted to ISO and is sent to ATM.
   - ATM will perform the actions as mentioned by the message. (Dispense and Print etc.)
-  -ATM Driver will generate a completion message and send to Payer FSP for a successful transaction. For unsuccessful transactions, the completion message won't be sent.
+  - ATM Driver will generate a completion message and send to Payer FSP for a successful transaction. For unsuccessful transactions, the completion message won't be sent.
 
 ## Use Case: Merchant Initiated Merchant Payment Authorised on POS
 
@@ -34,7 +34,7 @@ The business process involves two parties, Merchant and Customer. The merchant i
   - Customer requests for an OTP ( pre-generate OTP using mobile app/CMS)
   - Merchant will initiate payment for the desired amount and Customer ID through POS device.
   - The request will be converted from ISO to OPEN API and will be sent to Mojaloop. From there account lookup will be done and the request will be send to Payer FSP for authorization.
-  -ALS (Account lookup Service) module will verify the Party Identifier(mobile number) and PartyIdType(MSISDN). For a registered user, the ALS module will give back a successful response and the transaction request will be sent to Payer FSP for authentication. For unregistered user the ALS module will respond as not a participant.
+  - ALS (Account lookup Service) module will verify the Party Identifier(mobile number) and PartyIdType(MSISDN). For a registered user, the ALS module will give back a successful response and the transaction request will be sent to Payer FSP for authentication. For unregistered user the ALS module will respond as not a participant.
   - The Payer FSP validates the transaction request and also calculate the Quote for the transaction.
   - The calculated Quote will be displayed on the Terminal for confirmation by the Payee. 
   - The Payer FSP will authorize the transaction with dynamic OTP (or QR Code) which is generated through mobile application and entered by the customer.
