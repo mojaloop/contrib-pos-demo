@@ -64,11 +64,11 @@ The Account Lookup Module will look up for a partyId(eg.mobile number) based on 
 
 ## ISO Open API Adapter
 
-The ISO-Open API adapter would process the ISO message versions 1987 and 1993 received from any ISO switch and send it through to the Mojaloop system in Open API format. ISO message fields will be mapped to Open API format within the adapter.
-When the ISO Open API adapter receives a request from the ISO switch, the adapter will send a request to the ALS system to retrieve the fspId corresponding to the partyIdType and partyId.Once the adapter receives the successful response from the ALS,  it will create a message in the Open API format and will be send to the mapped payerfsp to calculate quote.
-The response for the quote request will be unpacked to ISO format and send back to ISO switch. For an accepted quote amount the transaction request will be send from switch to OTP Endpoint for OTP validation through adapter.
-For a verified OTP,  the transaction will be send to switch for transaction processing. 
-Once the transaction is successful at the terminal, a completion message(0202) will be send to the adapter which will be mapped and forwarded to the payerfsp as a fulfilment message.
+- The ISO-Open API adapter would process the ISO message versions 1987 and 1993 received from any ISO switch and send it through to the Mojaloop system in Open API format. ISO message fields will be mapped to Open API format within the adapter.
+- When the ISO Open API adapter receives a request from the ISO switch, the adapter will send a request to the ALS system to retrieve the fspId corresponding to the partyIdType and partyId.Once the adapter receives the successful response from the ALS,  it will create a message in the Open API format and will be send to the mapped payerfsp to calculate quote.
+- The response for the quote request will be unpacked to ISO format and send back to ISO switch. For an accepted quote amount the transaction request will be send from switch to OTP Endpoint for OTP validation through adapter.
+- For a verified OTP,  the transaction will be send to switch for transaction processing. 
+- Once the transaction is successful at the terminal, a completion message(0202) will be send to the adapter which will be mapped and forwarded to the payerfsp as a fulfilment message.
 
 ## ISO-1993 Message protocol
 
